@@ -10,8 +10,16 @@ void init(rack::Plugin *p) {
 	p->website = "https://github.com/Miserlou/RJModules";
 
     
-    p->addModel(modelButtons);
-    
+    //p->addModel(modelButtons);
+    //p->addModel(modelRotMix);
+	 // p->addModel(modelsingleMix);
+	 
+	  	p->addModel(modelChannel);
+	  
+
+	
+
+     
 
 }
 
