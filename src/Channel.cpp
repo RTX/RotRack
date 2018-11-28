@@ -6,6 +6,7 @@ struct Channel : Module
 	enum ParamIds 
     {
         PARAM_SEND1_LEVEL,
+       
         PARAM_LEVEL,
         PARAM_BALANCE,
         nPARAMS
@@ -21,9 +22,9 @@ struct Channel : Module
 	enum OutputIds 
     {
         OUT_L,
-        OUT_R,
-               
-        OUT_SND1,
+        OUT_R,               
+        OUT_SND1_L,
+        OUT_SND1_R,
         TEST,
         nOUTPUTS   
 	};
@@ -64,13 +65,15 @@ struct Channel : Module
 void Channel::step() 
 {
     outputs[TEST].value = params[PARAM_SEND1_LEVEL].value;
-    outputs[ OUT_SND1].value =   (inputs[ IN].value   * params[ PARAM_LEVEL ].value) *  params[ PARAM_SEND1_LEVEL ].value;
   
 
 
     outputs[ OUT_L].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value  * PanL(params[PARAM_BALANCE].value);
    
     outputs[ OUT_R].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value * PanR(params[PARAM_BALANCE].value);
+
+    outputs[ OUT_SND1_L  ].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value * PanL(params[PARAM_BALANCE].value)  *  params[ PARAM_SEND1_LEVEL ].value;
+    outputs[ OUT_SND1_R  ].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value  * PanR(params[PARAM_BALANCE].value) *  params[ PARAM_SEND1_LEVEL ].value;
 
      if(inputs[IN_THRU].value != 0 )
      {
@@ -105,26 +108,22 @@ Channel_Widget::Channel_Widget( Channel *module ) : ModuleWidget(module)
 	addChild(Widget::create<ScrewSilver>(Vec(5, 365))); 
 	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-5, 365)));
 
-    addParam(ParamWidget::create<as_FaderPot>(Vec(20, 200), module, Channel::PARAM_LEVEL, 0.0f, 1.0f, 0.0f));
 
-	addInput(Port::create<as_PJ301MPort>(Vec(35, 320), Port::INPUT, module, Channel::IN));
-    addInput(Port::create<as_PJ301MPort>(Vec(5, 320), Port::INPUT, module, Channel::IN_THRU));
+    addParam(ParamWidget::create<RoundBlackKnob>(Vec(15, 140), module, Channel::PARAM_SEND1_LEVEL, 0.0f, 1.0f, 0.0f));
 
+    addParam(ParamWidget::create<RoundBlackKnob>(Vec(15, 180), module, Channel::PARAM_BALANCE, -1.0f, 1.0f, 0.0f));
+    addParam(ParamWidget::create<as_FaderPot>(Vec(15, 210), module, Channel::PARAM_LEVEL, 0.0f, 1.0f, 0.0f));
+	addInput(Port::create<as_PJ301MPort>(Vec(15, 340), Port::INPUT, module, Channel::IN));
+    //addInput(Port::create<as_PJ301MPort>(Vec(5, 320), Port::INPUT, module, Channel::IN_THRU));
 
-    addOutput(Port::create<as_PJ301MPort>(Vec(35, 80), Port::OUTPUT, module, Channel::OUT_SND1));
-    addParam(ParamWidget::create<RoundBlackKnob>(Vec(4, 80 -4), module, Channel::PARAM_SEND1_LEVEL, 0.0f, 1.0f, 0.0f));
+    addOutput(Port::create<as_PJ301MPort>(Vec(5, 80), Port::OUTPUT, module, Channel::OUT_SND1_L ));
+    addOutput(Port::create<as_PJ301MPort>(Vec(35, 80), Port::OUTPUT, module, Channel::OUT_SND1_R ));
 
-    addOutput(Port::create<as_PJ301MPort>(Vec(35, 120), Port::OUTPUT, module, Channel::OUT_SND1));
-    addParam(ParamWidget::create<RoundBlackKnob>(Vec(4, 120 -4), module, Channel::PARAM_SEND1_LEVEL, 0.0f, 1.0f, 0.0f));
-
-    addOutput(Port::create<as_PJ301MPort>(Vec(35, 160), Port::OUTPUT, module, Channel::OUT_SND1));
-    addParam(ParamWidget::create<SmallKnob>(Vec(4, 160 -4), module, Channel::PARAM_SEND1_LEVEL, 0.0f, 1.0f, 0.0f));
-
+    
 
 	addOutput(Port::create<as_PJ301MPort>(Vec(4, 20), Port::OUTPUT, module, Channel::OUT_L));
 	addOutput(Port::create<as_PJ301MPort>(Vec(36, 20), Port::OUTPUT, module, Channel::OUT_R));
 
-    addParam(ParamWidget::create<RoundBlackKnob>(Vec(15, 50), module, Channel::PARAM_BALANCE, -1.0f, 1.0f, 0.0f));
 
 
     //	addOutput(Port::create<as_PJ301MPort>(Vec(20, 70), Port::OUTPUT, module, Channel::TEST));

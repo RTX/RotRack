@@ -195,8 +195,8 @@ struct as_SlidePot : SVGFader {
 struct as_FaderPot : SVGFader {
 	as_FaderPot() {
 		Vec margin = Vec(4, 4);
-		maxHandlePos = Vec(-1.5, -10).plus(margin);
-		minHandlePos = Vec(-1.5, 90).plus(margin);
+		maxHandlePos = Vec(-1.5, -8).plus(margin);
+		minHandlePos = Vec(-1.5, 92).plus(margin);
 		background->svg = SVG::load(assetPlugin(plugin,"res/rtxFader.svg"));
 		background->wrap();
 		background->box.pos = margin;
