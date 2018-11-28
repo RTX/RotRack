@@ -170,6 +170,7 @@ struct YellowRedLight : GrayModuleLightWidget {
 
 struct as_PJ301MPort : SVGPort {
 	as_PJ301MPort() {
+		
 		setSVG(SVG::load(assetPlugin(plugin,"res/as-PJ301M.svg")));
 		//background->svg = SVG::load(assetPlugin(plugin,"res/as-PJ301M.svg"));
 		//background->wrap();
