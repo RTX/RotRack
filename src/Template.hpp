@@ -7,6 +7,14 @@ extern Plugin *plugin;
 
 extern Model *modelChannel;
 
+
+struct SmallKnob : RoundKnob {
+	SmallKnob() {
+		setSVG(SVG::load(assetPlugin(plugin,"res/Knob_28.svg")));
+	}
+};
+
+
 struct RotoRackLedButton : SVGSwitch, ToggleSwitch
 {
     RotoRackLedButton()
