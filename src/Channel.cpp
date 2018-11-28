@@ -54,7 +54,7 @@ struct Channel : Module
 	}
 
 	float PanR(float balance )//, float cv) 
-    {
+    { // -1...+1
 		float p, inp;
 		inp = balance ; //+ cv / 5;
 		p = M_PI * (clamp(inp, -1.0f, 1.0f) + 1) / 4;
@@ -65,7 +65,7 @@ void Channel::step()
 {
     outputs[TEST].value = params[PARAM_SEND1_LEVEL].value;
     outputs[ OUT_SND1].value =   (inputs[ IN].value   * params[ PARAM_LEVEL ].value) *  params[ PARAM_SEND1_LEVEL ].value;
-    float vol_l, vol_r = 0.0f;
+  
 
 
     outputs[ OUT_L].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value  * PanL(params[PARAM_BALANCE].value);
