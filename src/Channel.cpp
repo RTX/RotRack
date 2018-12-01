@@ -1,31 +1,61 @@
 #include "Template.hpp"
+#define nCHANNELS 8
 
 
 struct Channel : Module 
 {
 	enum ParamIds 
     {
-        PARAM_SEND1_LEVEL,
-       
-        PARAM_LEVEL,
-        PARAM_BALANCE,
+        PARAM_MASTER_LEVEL,
+        ENUMS(PARAM_SEND_LEVEL_1_, 8),
+        ENUMS(PARAM_SEND_LEVEL_2_, 8),
+        ENUMS(PARAM_SEND_LEVEL_3_, 8),
+
+        ENUMS(PARAM_CHANNEL_LEVEL, 8),
+
+        ENUMS(PARAM_CHANNEL_BALANCE, 8),
+
+        ENUMS(PARAM_SEND_BALANCE, 3),
+        ENUMS(PARAM_SEND_LEVEL, 3),
+
+        ENUMS(PARAM_EQ_HI_CHANNEL, 8),
+        ENUMS(PARAM_EQ_MID_CHANNEL, 8),
+        ENUMS(PARAM_EQ_LOW_CHANNEL, 8),
+
+
         nPARAMS
     };
 
 	enum InputIds 
     {
-        IN,
-        IN_THRU,
+        ENUMS(INPUT_CHANNEL_L, 8),
+        ENUMS(INPUT_CHANNEL_R, 8) ,   
+
+        ENUMS(CV_CHANNEL_LEVEL, 8),
+        ENUMS(CV_CHANNEL_PAN, 8),
+
+        ENUMS(CV_CHANNEL_SEND_LEVEL_1_, 8),
+        ENUMS(CV_CHANNEL_SEND_LEVEL_2_, 8),
+        ENUMS(CV_CHANNEL_SEND_LEVEL_3_, 8),
+
+        ENUMS(INPUT_CHANNEL_SEND_L, 3),
+        ENUMS(INPUT_CHANNEL_SEND_R, 3) ,   
+
+        ENUMS(CV_SEND_BALANCE, 3),
+        ENUMS(CV_SEND_LEVEL, 3),       
+
+        INPUT_THRU_L,
+        INPUT_THRU_R,
+
         nINPUTS
 	};
 
 	enum OutputIds 
     {
-        OUT_L,
-        OUT_R,               
-        OUT_SND1_L,
-        OUT_SND1_R,
-        TEST,
+        OUTPUT_MASTER_L,
+        OUTPUT_MASTER_R,   
+        ENUMS(OUTPUT_SEND_L, 3),
+        ENUMS(OUTPUT_SEND_R, 3),
         nOUTPUTS   
 	};
 
@@ -40,6 +70,11 @@ struct Channel : Module
     //void    fromJson(json_t *rootJ) override;
     void    onRandomize() override;
     void    onReset() override;
+
+      // LED Meters
+    LEDMeterWidget  *m_pLEDMeterChannel[ nCHANNELS ][ 2 ] ={};
+    LEDMeterWidget  *m_pLEDMeterMain[ 2 ] ={};
+
     
 };
 
@@ -64,14 +99,24 @@ struct Channel : Module
 
 void Channel::step() 
 {
-    outputs[TEST].value = params[PARAM_SEND1_LEVEL].value;
+  //  outputs[TEST].value = params[PARAM_SEND1_LEVEL].value;
   
+for (int i =0 ; i < 8; i++)
+    {
 
-
-    outputs[ OUT_L].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value  * PanL(params[PARAM_BALANCE].value);
+        outputs[ OUTPUT_MASTER_L].value +=   inputs[ INPUT_CHANNEL_L + i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value  * PanL(params[PARAM_CHANNEL_BALANCE + i].value);
    
-    outputs[ OUT_R].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value * PanR(params[PARAM_BALANCE].value);
+  // if(INPUT_CHANNEL_R1.active)
+  // {
+   // outputs[ OUTPUT_MASTER_R].value =   inputs[ INPUT_CHANNEL_R +1].value   * params[ PARAM_CHANNEL_LEVEL+1 ].value * PanR(params[PARAM_CHANNEL_BALANCE + 1].value);
+  // }
+  // else{
+        outputs[ OUTPUT_MASTER_R].value +=   inputs[ INPUT_CHANNEL_L+ i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value * PanR(params[PARAM_CHANNEL_BALANCE + i].value);
 
+  //}
+    }
+
+   /*
     outputs[ OUT_SND1_L  ].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value * PanL(params[PARAM_BALANCE].value)  *  params[ PARAM_SEND1_LEVEL ].value;
     outputs[ OUT_SND1_R  ].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value  * PanR(params[PARAM_BALANCE].value) *  params[ PARAM_SEND1_LEVEL ].value;
 
@@ -79,7 +124,7 @@ void Channel::step()
      {
         // outputs[ OUT_L].value += inputs[IN_THRU].value;    
      }   
-    
+    */
 
     
 }
@@ -92,37 +137,98 @@ Channel_Widget::Channel_Widget( Channel *module ) : ModuleWidget(module)
 {
     
 
-	box.size = Vec( 15*4, 380);
-
+	box.size = Vec( 15*55, 380);
 	{
 		SVGPanel *panel = new SVGPanel();
 		panel->box.size = box.size;
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/rtxblank.svg")));
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/compmix8_strip.svg")));
 		addChild(panel);
 	}
 
-    //module->lg.Open("XFade.txt");
-
-	addChild(Widget::create<ScrewSilver>(Vec(5, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-5, 0)));
-	addChild(Widget::create<ScrewSilver>(Vec(5, 365))); 
-	addChild(Widget::create<ScrewSilver>(Vec(box.size.x-5, 365)));
 
 
-    addParam(ParamWidget::create<RoundBlackKnob>(Vec(15, 140), module, Channel::PARAM_SEND1_LEVEL, 0.0f, 1.0f, 0.0f));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x -15, 0)));
+	addChild(Widget::create<ScrewSilver>(Vec(15, 365))); 
+	addChild(Widget::create<ScrewSilver>(Vec(box.size.x -15, 365)));
 
-    addParam(ParamWidget::create<RoundBlackKnob>(Vec(15, 180), module, Channel::PARAM_BALANCE, -1.0f, 1.0f, 0.0f));
-    addParam(ParamWidget::create<as_FaderPot>(Vec(15, 210), module, Channel::PARAM_LEVEL, 0.0f, 1.0f, 0.0f));
-	addInput(Port::create<as_PJ301MPort>(Vec(15, 340), Port::INPUT, module, Channel::IN));
+    for (int i =0 ; i < 8; i++)
+    {
+        int xPosition = 30 * i;
+        // in L/R
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 348 ), Port::INPUT, module, Channel::INPUT_CHANNEL_L + i));
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 328 ), Port::INPUT, module, Channel::INPUT_CHANNEL_R + i));
+        // Level CV
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 308 ), Port::INPUT, module, Channel::CV_CHANNEL_LEVEL + i));
+        // Balance / Pan
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 217), module, Channel::PARAM_CHANNEL_BALANCE + i, -1.0f, 1.0f, 0.0f));
+        // Pan CV
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 195 ), Port::INPUT, module, Channel::CV_CHANNEL_PAN + i));
+        // EQ
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 177), module, Channel::PARAM_EQ_LOW_CHANNEL + i, -1.0f, 1.0f, 0.0f));
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 159), module, Channel::PARAM_EQ_MID_CHANNEL + i, -1.0f, 1.0f, 0.0f));
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 141), module, Channel::PARAM_EQ_HI_CHANNEL + i, -1.0f, 1.0f, 0.0f));
+        // SEND s
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 119 ), Port::INPUT, module, Channel::CV_CHANNEL_SEND_LEVEL_3_ + i));
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 101), module, Channel::PARAM_SEND_LEVEL_3_ + i, -1.0f, 1.0f, 0.0f));
+
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 82 ), Port::INPUT, module, Channel::CV_CHANNEL_SEND_LEVEL_2_ + i));
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 64), module, Channel::PARAM_SEND_LEVEL_2_ + i, -1.0f, 1.0f, 0.0f));
+
+        addInput(Port::create<as_PJ301MPort>(Vec(44 + xPosition, 45 ), Port::INPUT, module, Channel::CV_CHANNEL_SEND_LEVEL_2_ + i));
+        addParam(ParamWidget::create<as_Knob>(Vec(44 + xPosition, 27), module, Channel::PARAM_SEND_LEVEL_2_ + i, -1.0f, 1.0f, 0.0f));
+
+        // Meters         
+        module->m_pLEDMeterMain[ 0 ] = new LEDMeterWidget( 48 + xPosition, 239, 2, 3, 2, true );
+        addChild( module->m_pLEDMeterMain[ 0 ] );
+
+        module->m_pLEDMeterMain[ 0 ] = new LEDMeterWidget( 54 + xPosition, 239, 2, 3, 2, true );
+        addChild( module->m_pLEDMeterMain[ 0 ] );
+
+        // Volume Faders 
+        addChild(ParamWidget::create<as_FaderPot>(Vec(36 + xPosition, 239), module, Channel::PARAM_CHANNEL_LEVEL + i, 0.0f, 1.0f, 0.0f));
+
+
+        //Output Master 
+        addOutput(Port::create<as_PJ301MPort>(Vec(430, 348), Port::OUTPUT, module, Channel::OUTPUT_MASTER_L));
+        addOutput(Port::create<as_PJ301MPort>(Vec(450, 348), Port::OUTPUT, module, Channel::OUTPUT_MASTER_R));
+
+         //Input Thru   
+     //   addInput(Port::create<as_PJ301MPort>(Vec(430 , 328 ), Port::INPUT, module, Channel::INPUT_THRU_L ));
+       // addInput(Port::create<as_PJ301MPort>(Vec(450 , 328 ), Port::INPUT, module, Channel::INPUT_THRU_R ));
+
+        addInput(Port::create<as_PJ301MPort>(Vec(430, 328), Port::INPUT, module, Channel::INPUT_THRU_L));
+        addInput(Port::create<as_PJ301MPort>(Vec(450, 328), Port::INPUT, module, Channel::INPUT_THRU_R));
+
+    
+    }
+
+
+ // Meters         
+        module->m_pLEDMeterMain[ 0 ] = new LEDMeterWidget( 429, 239, 2, 3, 2, true );
+        addChild( module->m_pLEDMeterMain[ 0 ] );
+
+        module->m_pLEDMeterMain[ 0 ] = new LEDMeterWidget( 433, 239, 2, 3, 2, true );
+        addChild( module->m_pLEDMeterMain[ 0 ] );
+
+        // Volume Faders 
+        addChild(ParamWidget::create<as_FaderPot>(Vec(420, 239), module, Channel::PARAM_MASTER_LEVEL, 0.0f, 1.0f, 0.0f));
+
+    /*
+    
+
+
+   
+   
     //addInput(Port::create<as_PJ301MPort>(Vec(5, 320), Port::INPUT, module, Channel::IN_THRU));
 
-    addOutput(Port::create<as_PJ301MPort>(Vec(5, 80), Port::OUTPUT, module, Channel::OUT_SND1_L ));
-    addOutput(Port::create<as_PJ301MPort>(Vec(35, 80), Port::OUTPUT, module, Channel::OUT_SND1_R ));
+    addOutput(Port::create<as_PJ301MPort>(Vec(5, 700), Port::OUTPUT, module, Channel::OUT_SND1_L ));
+    addOutput(Port::create<as_PJ301MPort>(Vec(35, 700), Port::OUTPUT, module, Channel::OUT_SND1_R ));
 
     
 
-	addOutput(Port::create<as_PJ301MPort>(Vec(4, 20), Port::OUTPUT, module, Channel::OUT_L));
-	addOutput(Port::create<as_PJ301MPort>(Vec(36, 20), Port::OUTPUT, module, Channel::OUT_R));
+	addOutput(Port::create<as_PJ301MPort>(Vec(4, 700), Port::OUTPUT, module, Channel::OUT_L));
+	addOutput(Port::create<as_PJ301MPort>(Vec(36, 700), Port::OUTPUT, module, Channel::OUT_R));
 
 
 
@@ -131,7 +237,7 @@ Channel_Widget::Channel_Widget( Channel *module ) : ModuleWidget(module)
 
 
 	//addOutput(Port::create<as_PJ301MPort>(Vec(20, 160]), Port::OUTPUT, module, Channel::OUT_R));
-
+    */
 
 }
 
