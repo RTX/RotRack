@@ -1,5 +1,9 @@
 #include "Template.hpp"
 #define nCHANNELS 8
+#define CV_MAX (10.0f)
+#define AUDIO_MAX (6.0f)
+#define VOCT_MAX (6.0f)
+#define AMP_MAX (2.0f)
 
 
 struct Channel : Module 
@@ -99,22 +103,40 @@ struct Channel : Module
 
 void Channel::step() 
 {
-  //  outputs[TEST].value = params[PARAM_SEND1_LEVEL].value;
   
-for (int i =0 ; i < 8; i++)
-    {
+  
+    float lvl_l = 0.0f;
+    float lvl_r = 0.0f;
+  
+    for (int i =0 ; i < 8; i++)
+    {               
+        lvl_l +=   (inputs[ INPUT_CHANNEL_L + i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value  * PanL(params[PARAM_CHANNEL_BALANCE + i].value)) ;
 
-        outputs[ OUTPUT_MASTER_L].value +=   inputs[ INPUT_CHANNEL_L + i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value  * PanL(params[PARAM_CHANNEL_BALANCE + i].value);
+        lvl_l +=  (inputs[INPUT_CHANNEL_L +i].value * params[ PARAM_CHANNEL_LEVEL + i].value) * PanL(params[PARAM_CHANNEL_BALANCE + i].value) ;
+        lvl_r +=  (inputs[INPUT_CHANNEL_L +i].value * params[ PARAM_CHANNEL_LEVEL  + i].value) * PanR(params[PARAM_CHANNEL_BALANCE + i].value);
+    }
+
+
+    lvl_l = clamp( lvl_l * params[ PARAM_MASTER_LEVEL ].value, -AUDIO_MAX, AUDIO_MAX );
+    lvl_r = clamp( lvl_r * params[ PARAM_MASTER_LEVEL ].value, -AUDIO_MAX, AUDIO_MAX );
+
+    outputs[ OUTPUT_MASTER_L].value = lvl_l;
+    outputs[ OUTPUT_MASTER_R].value = lvl_r;
+
+
+   
+      //  lvl_l +=   (inputs[ INPUT_CHANNEL_L + i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value  * PanL(params[PARAM_CHANNEL_BALANCE + i].value)) / i;
    
   // if(INPUT_CHANNEL_R1.active)
   // {
    // outputs[ OUTPUT_MASTER_R].value =   inputs[ INPUT_CHANNEL_R +1].value   * params[ PARAM_CHANNEL_LEVEL+1 ].value * PanR(params[PARAM_CHANNEL_BALANCE + 1].value);
   // }
   // else{
-        outputs[ OUTPUT_MASTER_R].value +=   inputs[ INPUT_CHANNEL_L+ i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value * PanR(params[PARAM_CHANNEL_BALANCE + i].value);
+       // lvl_r +=   (inputs[ INPUT_CHANNEL_L+ i].value   * params[ PARAM_CHANNEL_LEVEL+ i ].value * PanR(params[PARAM_CHANNEL_BALANCE + i].value) ) / i;
 
   //}
-    }
+    
+     
 
    /*
     outputs[ OUT_SND1_L  ].value =   inputs[ IN].value   * params[ PARAM_LEVEL ].value * PanL(params[PARAM_BALANCE].value)  *  params[ PARAM_SEND1_LEVEL ].value;
